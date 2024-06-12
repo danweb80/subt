@@ -2,10 +2,12 @@ import os
 
 from PIL import Image, ImageFont, ImageDraw
 
+dir_destino = "result"
+dir_origem = "origin"
 
 image_arq = 'AvatarMaker.png'
 text = 'Aula 01 - Pensamentos animados'
-img = Image.open(image_arq)
+img = Image.open(dir_origem + '//' + image_arq)
 # font = ImageFont.truetype('arial.ttf', 20)
 # draw = ImageDraw.Draw(img)
 # iw, ih = img.size
@@ -18,9 +20,8 @@ img = Image.open(image_arq)
 # )
 
 
-pasta = "result"
 # Verifique se o pastaetório já existe
-if not os.path.exists(pasta):
-    os.mkdir(pasta)
-img.save(pasta + '//' + image_arq )
+if not os.path.exists(dir_destino):
+    os.mkdir(dir_destino)
+img.save(dir_destino + '//' + image_arq )
 
