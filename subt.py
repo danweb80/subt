@@ -1,4 +1,4 @@
-import os
+import os, textwrap
 
 from PIL import Image, ImageFont, ImageDraw
 
@@ -9,33 +9,45 @@ color = '#b4963c'
 
 
 image_arq = 'Capa aula 1200x768.png'
-text = 'O Início da Carreira '.upper()
+text = 'O Início da Carreira Psicanalítica de Freud #1'.strip().upper()
+max_text_len = len(text)
 left_pos = 120  # PIXEL
 vert_pos  = 75  # PERCENTUAL %
 right_pos = 200 # PIXEL
-font_size = 60
+font_size = 68
 
+# Prepara IMAGEM
 img = Image.open(dir_origem + image_arq)
 print('IMAGE SIZE: ', img.size)
-font = ImageFont.truetype(font_path, font_size)
 draw = ImageDraw.Draw(img)
 image_width, image_height = img.size
-left, top, right, bottom = bbox = font.getbbox(text)
-# bbox = font.getbbox(text)
-print("text_box(bbox): ", bbox)
+# Prepara FONTE do texto
+font = ImageFont.truetype(font_path, font_size)
+left, top, right, bottom = font.getbbox(text)
 text_width = right - left
 text_height = bottom - top
-print("text_width: ", text_width)
-print("text_height: ", text_height)
-top_pos = round(image_height*vert_pos/100) - bottom 
-print("top_pos: ", top_pos)
-draw.text(
-    #((image_width -text_width) / 2, (image_height - text_height) / 2),
+
+# Se o texto não couber quebra linha (insere um \n no meio)
+# achar quantos caracteres (text length) cabem no espaço destinado a uma linha de texto (text width))
+if (left_pos + text_width) > (image_width - right_pos):
+    teste = text
+    while (left_pos + text_width) > (image_width - right_pos):
+        teste = teste[:-1]
+        max_text_len = len(teste)
+        left, top, right, bottom = font.getbbox(teste)
+        text_width = right - left
+    text = textwrap.fill(text, width=max_text_len)
+    text_height = text_height * 2
+
+top_pos = int(image_height*vert_pos/100) - bottom 
+
+draw.multiline_text(
+    #((image_width -text_width) / 2, (image_height - text_height) / 2), # CENTRALIZADO
     (left_pos,top_pos),
-    # (100,500),
     text,
     fill=color,
     font=font,
+    # anchor='lb', #left bottom === não funciona no multiline :(
     # stroke_width=2,
     # stroke_fill='black'
 )
