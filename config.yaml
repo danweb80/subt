@@ -1,0 +1,32 @@
+fonte:
+  nome: Rubik-Regular.ttf
+  color: b4963c
+formatos:
+  1200x768:
+    left_pos: 120  # PIXEL
+    vert_pos: 75  # PERCENTUAL %
+    right_pos: 200 # PIXEL
+    font_size: 68
+    line_thikness: 5
+    line_space: 35
+  400x400:
+    left_pos: 40  # PIXEL
+    vert_pos: 75  # PERCENTUAL %
+    right_pos: 20 # PIXEL
+    font_size: 30
+    line_thikness: 3
+    line_space: 15
+  300x580:
+    left_pos: 30  # PIXEL
+    vert_pos: 75  # PERCENTUAL %
+    right_pos: 20 # PIXEL
+    font_size: 30
+    line_thikness: 2
+    line_space: 12
+  circulo:
+    left_pos: 80  # PIXEL
+    vert_pos: 75  # PERCENTUAL %
+    right_pos: 80 # PIXEL
+    font_size: 25
+    line_thikness: 0
+    line_space: 30
