@@ -97,18 +97,36 @@ with open(dir_origem+'/modulos.csv', 'r') as csv_file:
 
                                             # Se o texto não couber, quebra a linha (insere um \n no meio)
                                             # achar quantos caracteres (text length) cabem no espaço destinado a uma linha de texto (text width))
-                                            if (left_pos + text_width) > (image_width - right_pos):
-                                                teste = text
-                                                while (left_pos + text_width) > (image_width - right_pos):
-                                                    teste = teste[:-1]
-                                                    max_text_len = len(teste)
-                                                    left, top, right, bottom = font.getbbox(teste)
+                                            teste = text
+                                            max_text_len = len(teste)
+                                            #if (left_pos + text_width) > (image_width - right_pos):
+                                            while (left_pos + text_width) > (image_width - right_pos):
+                                                teste = textwrap.wrap(text, width=max_text_len)
+                                                teste_linhas = len(teste)
+                                                if teste_linhas is 2:
+                                                    left, top, right, bottom = font.getbbox(teste[0])
+                                                    text_width1 = right - left
+                                                    left, top, right, bottom = font.getbbox(teste[1])
+                                                    text_width2 = right - left
+                                                    text_width = max(text_width1, text_width2)
+                                                    if text_width1 > text_width2:
+                                                        max_text_len -= 1
+                                                    else:
+                                                        font_size -= 1
+                                                        font = ImageFont.truetype(font_path, font_size)
+                                                else:
+                                                    max_text_len -= 1
+                                                    left, top, right, bottom = font.getbbox(teste[0])
                                                     text_width = right - left
+                                                
+                                                # print(f'max: {max_text_len} - linhas: {teste_linhas} - width: {text_width} - font_size: {font_size} --- {teste} ')
+                                                # input()
+                                                
+                                            if teste_linhas > 1:    
                                                 text = textwrap.fill(text, width=max_text_len)
                                                 text_height = text_height * 2
-
+                                            
                                             top_pos = int(image_height*vert_pos/100) - bottom 
-
                                             draw.multiline_text(
                                                 #((image_width -text_width) / 2, (image_height - text_height) / 2), # CENTRALIZADO
                                                 (left_pos,top_pos),
