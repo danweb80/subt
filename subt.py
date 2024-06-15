@@ -13,7 +13,7 @@ with open('config.yaml') as file:
     config = yaml.load(file, Loader=yaml.FullLoader)
 
 font_path = './fonts/'+config['fonte']['nome']
-color = '#'+config['fonte']['color']
+color = config['fonte']['color']
 formatos = config['formatos']
 
 # ABRE O CSV COM A LISTA DE CUROSOS/MÓDULOS/AULAS
@@ -71,76 +71,93 @@ with open(dir_origem+'/modulos.csv', 'r') as csv_file:
                         list_dir_curso = os.listdir(dir_origem+'/'+dir)
                         for arq in list_dir_curso:
                             if os.path.isfile(dir_path+'/'+arq):
+                                # Neste caso estou procurando arquivos que começam com o texto 'Capa aula'
                                 if 'Capa aula' in arq:
+                                    # Faz a varredura para encontrar os arquivos de cada formato definido no config.yaml
                                     for formato in formatos:
                                         if formato in arq:
-                                            # print(f'Formato {formato} encontrado no arquivo {arq}')
+                                            print(f'Formato {formato} encontrado no arquivo {arq}')
                                             text = aula_atual_nome.strip().upper()
-                                            max_text_len = len(text)
-                                            left_pos  = config['formatos'][formato]['left_pos']
-                                            vert_pos  = config['formatos'][formato]['vert_pos']
-                                            right_pos = config['formatos'][formato]['right_pos']
-                                            font_size = config['formatos'][formato]['font_size']
-                                            line_thikness = config['formatos'][formato]['line_thikness']
-                                            line_space = config['formatos'][formato]['line_space']
-
+                                                                                        
                                             # Prepara IMAGEM
                                             img = Image.open(dir_path+'/'+arq)
-                                            # print('IMAGE SIZE: ', img.size)
+                                            print('IMAGE SIZE: ', img.size)
                                             draw = ImageDraw.Draw(img)
                                             image_width, image_height = img.size
+                                            # Pega os dados do yaml e ajsuta para o tamanho da imagem para determinar a box do texto
+                                            top_pos =   int(config['formatos'][formato]['top_pos'] * image_height / 100)
+                                            bottom_pos = int((100 - config['formatos'][formato]['bottom_pos']) * image_height / 100)
+                                            text_box_height = bottom_pos - top_pos
+                                            left_pos  = int(config['formatos'][formato]['left_pos'] * image_width / 100)
+                                            right_pos = int((100 - config['formatos'][formato]['right_pos']) * image_width / 100)
+                                            text_box_width = right_pos - left_pos
+                                            # print(f'top: {top_pos}, bottom: {bottom_pos} - left: {left_pos}, right: {right_pos}')
+                                            # print(f'Box_Width: {text_box_width} - Box_Heght: {text_box_height}')
+
                                             # Prepara FONTE do texto
+                                            font_size = config['formatos'][formato]['font_size']
                                             font = ImageFont.truetype(font_path, font_size)
                                             left, top, right, bottom = font.getbbox(text)
                                             text_width = right - left
                                             text_height = bottom
 
-                                            # Se o texto não couber, quebra a linha (insere um \n no meio)
-                                            # achar quantos caracteres (text length) cabem no espaço destinado a uma linha de texto (text width))
-                                            teste = text
-                                            max_text_len = len(teste)
-                                            #if (left_pos + text_width) > (image_width - right_pos):
-                                            while (left_pos + text_width) > (image_width - right_pos):
+                                            teste = ''
+                                            max_text_len = len(text)
+                                            # vai fazendo wrap e diminuindo max_len enquanto couber na altura
+                                            while text_width > text_box_width:
+                                                max_text_len -= 1
                                                 teste = textwrap.wrap(text, width=max_text_len)
+                                                # verificar nova largura e altura
+                                                text_width = 0
+                                                text_height = 0
+                                                for linha in teste:
+                                                    # pega o maior valor entre as larguras
+                                                    left, top, right, bottom = font.getbbox(linha)
+                                                    if text_width < right - left:
+                                                        text_width = right - left
+                                                    # pega a soma das alturas
+                                                    text_height += bottom
                                                 teste_linhas = len(teste)
-                                                if teste_linhas is 2:
-                                                    left, top, right, bottom = font.getbbox(teste[0])
-                                                    text_width1 = right - left
-                                                    left, top, right, bottom = font.getbbox(teste[1])
-                                                    text_width2 = right - left
-                                                    text_width = max(text_width1, text_width2)
-                                                    if text_width1 > text_width2:
-                                                        max_text_len -= 1
-                                                    else:
-                                                        font_size -= 1
-                                                        font = ImageFont.truetype(font_path, font_size)
-                                                else:
+                                                # print(f'Reduz max_len .... max: {max_text_len} - linhas: {teste_linhas} - width: {text_width} - height: {text_height} - font_size: {font_size} --- {teste} ')
+                                                # input('OK! Texto inserido!')
+                                                
+                                            while text_height > text_box_height or text_width > text_box_width:
+                                                font_size -= 1
+                                                font = ImageFont.truetype(font_path, font_size)
+                                                teste = textwrap.wrap(text, width=max_text_len)
+                                                text_width = 0
+                                                text_height = 0
+                                                for linha in teste:
+                                                    # pega o maior valor entre as larguras
+                                                    left, top, right, bottom = font.getbbox(linha)
+                                                    if text_width < right - left:
+                                                        text_width = right - left
+                                                    # pega a soma das alturas
+                                                    text_height += bottom
+                                                # faz o ajuste fino, compensando os novos ajustes 
+                                                if text_width < text_box_width:
+                                                    max_text_len += 1
+                                                elif text_width > text_box_width:
                                                     max_text_len -= 1
-                                                    left, top, right, bottom = font.getbbox(teste[0])
-                                                    text_width = right - left
-                                                
-                                                # print(f'max: {max_text_len} - linhas: {teste_linhas} - width: {text_width} - font_size: {font_size} --- {teste} ')
+                                                teste_linhas = len(teste)
+                                                # print(f'Reduz fonte.... max: {max_text_len} - linhas: {teste_linhas} - width: {text_width} - font_size: {font_size} --- {teste} ')
                                                 # input()
-                                                
-                                            if teste_linhas > 1:    
-                                                text = textwrap.fill(text, width=max_text_len)
-                                                text_height = text_height * 2
+
+                                            line_thikness = config['formatos'][formato]['line_thikness']
+                                            line_space = config['formatos'][formato]['line_space']
+
+                                            if teste:
+                                                for linha in teste:
+                                                    draw.text((left_pos,top_pos), linha, fill=color, font=font) # anchor='lb', stroke_width=2, stroke_fill='black'
+                                                    top_pos = top_pos + bottom + 5
+                                                line_height = top_pos + line_space #(image_height*5/100)
+                                            else:
+                                                draw.text((left_pos,top_pos), text, fill=color, font=font) # anchor='lb', stroke_width=2, stroke_fill='black'
+                                                line_height = top_pos + bottom + line_space #(image_height*5/100)
                                             
-                                            top_pos = int(image_height*vert_pos/100) - bottom 
-                                            draw.multiline_text(
-                                                #((image_width -text_width) / 2, (image_height - text_height) / 2), # CENTRALIZADO
-                                                (left_pos,top_pos),
-                                                text,
-                                                fill=color,
-                                                font=font,
-                                                # anchor='lb', #left bottom === não funciona no multiline :(
-                                                # stroke_width=2,
-                                                # stroke_fill='black'
-                                            )
-                                            
+                                            # DESENHA A LINHA
                                             if(line_thikness):
-                                                line_height = top_pos + text_height + line_space #(image_height*5/100)
-                                                line_width = text_width + left_pos + (image_width*5/100)
+                                                line_width = text_width + left_pos + (image_width*3/100)
                                                 draw.line((0, line_height, line_width, line_height), fill=color, width=line_thikness)
 
                                             # SALVA A IMAGEM
