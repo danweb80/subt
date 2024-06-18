@@ -3,42 +3,42 @@ fonte:
   color: '#b4963c'
 formatos:
   1200x768:
-    # PERCENTUAL %
-    top_pos: 65  
-    bottom_pos: 15
-    left_pos: 15 
-    right_pos: 15
-    # PIXEL
-    font_size: 68
-    line_thikness: 5
-    line_space: 35
+    top_pos: 65     #%
+    bottom_pos: 15  #%
+    left_pos: 15    #%
+    right_pos: 15   #%
+    font_size: 68     #px
+    line_thikness: 5  #px
+    line_space: 35    #px
+    logo_pos: (15, 15) #%
+    logo_size: 100    #px
   400x400:
-    # PERCENTUAL %
     top_pos: 65  
     bottom_pos: 15
     left_pos: 15 
     right_pos: 15
-    # PIXEL
     font_size: 26
     line_thikness: 3
     line_space: 15
+    logo_pos: (10, 10)
+    logo_size: 50
   300x580:
-    # PERCENTUAL %
     top_pos: 75  
     bottom_pos: 15
     left_pos: 15 
     right_pos: 10
-    # PIXEL
     font_size: 30
     line_thikness: 2
     line_space: 12
+    logo_pos: (20,50)
+    logo_size: 80
   circulo:
-    # PERCENTUAL %
     top_pos: 65  
     bottom_pos: 20
     left_pos: 18  
     right_pos: 18 
-    # PIXEL
     font_size: 30
     line_thikness: 0
     line_space: 30
+    logo_pos: (50, 10)
+    logo_size: 30

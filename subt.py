@@ -1,6 +1,4 @@
-# TESTE MELHORIAS
-
-import os, textwrap, csv
+import os, textwrap, csv, ast
 
 import yaml
 from PIL import Image, ImageFont, ImageDraw
@@ -18,7 +16,12 @@ font_path = './fonts/'+config['fonte']['nome']
 color = config['fonte']['color']
 formatos = config['formatos']
 
-# ABRE O CSV COM A LISTA DE CUROSOS/MÓDULOS/AULAS
+# 
+logo = Image.open(dir_origem+'/logo.png').convert("RGBA")
+logo_size = logo.size
+logo_ratio = logo_size[1]/logo_size[0]
+
+# ABRE O CSV COM A LISTA DE CURSOS/MÓDULOS/AULAS
 # ITERA E CLASSIFICA CADA ITEM PARA PROCURA-LOS NA PASTA
 with open(dir_origem+'/modulos.csv', 'r') as csv_file:
     modulos = csv.reader(csv_file)
@@ -40,16 +43,16 @@ with open(dir_origem+'/modulos.csv', 'r') as csv_file:
         elif curso_atual_num and not curso_atual_nome:
             # pega o NOME do CURSO
             curso_atual_nome = linha[0]
-            print(f'>> Curso {curso_atual_num}: {curso_atual_nome} <<')
+            print('################################################')
+            print(f' CURSO {curso_atual_num}: {curso_atual_nome} ')
         
-        #elif curso_atual_num and curso curso_atual_nome # PODERIA SER SÓ UM ELSE  ????
         elif not modulo_atual_nome:
             if linha[0]:
                 #pega o NOME do novo MODULO
                 modulo_atual_nome = linha[0]
                 modulo_atual_num += 1
                 aula_atual_num = 0
-                print(f'\tMódulo {modulo_atual_num}: {modulo_atual_nome}')
+                print(f'\t├─ Módulo {modulo_atual_num}: {modulo_atual_nome}')
         elif not linha[0]:
                 # linha em branco, troca de módulo
                 modulo_atual_nome = ''
@@ -57,7 +60,7 @@ with open(dir_origem+'/modulos.csv', 'r') as csv_file:
             #pega o NOME da AULA
             aula_atual_nome = linha[0]
             aula_atual_num += 1
-            print(f'\t\tAula {aula_atual_num}: {aula_atual_nome}')
+            print(f'\t|\t├─ Aula {aula_atual_num}: {aula_atual_nome}')
             
             ###############################
             ######   Fazer os PARANAUÊS
@@ -78,12 +81,12 @@ with open(dir_origem+'/modulos.csv', 'r') as csv_file:
                                     # Faz a varredura para encontrar os arquivos de cada formato definido no config.yaml
                                     for formato in formatos:
                                         if formato in arq:
-                                            print(f'Formato {formato} encontrado no arquivo {arq}')
+                                            print(f'\t|\t|\t├─ Formato {formato} --- {arq}')
                                             text = aula_atual_nome.strip().upper()
                                                                                         
                                             # Prepara IMAGEM
                                             img = Image.open(dir_path+'/'+arq)
-                                            print('IMAGE SIZE: ', img.size)
+                                            print('\t|\t|\t|\t├─ image size: ', img.size)
                                             draw = ImageDraw.Draw(img)
                                             image_width, image_height = img.size
                                             # Pega os dados do yaml e ajsuta para o tamanho da imagem para determinar a box do texto
@@ -104,6 +107,7 @@ with open(dir_origem+'/modulos.csv', 'r') as csv_file:
                                             text_height = bottom
 
                                             teste = ''
+                                            teste_linhas = 0
                                             max_text_len = len(text)
                                             # vai fazendo wrap e diminuindo max_len enquanto couber na altura
                                             while text_width > text_box_width:
@@ -122,8 +126,10 @@ with open(dir_origem+'/modulos.csv', 'r') as csv_file:
                                                 teste_linhas = len(teste)
                                                 # print(f'Reduz max_len .... max: {max_text_len} - linhas: {teste_linhas} - width: {text_width} - height: {text_height} - font_size: {font_size} --- {teste} ')
                                                 # input('OK! Texto inserido!')
-                                                
-                                            while text_height > text_box_height or text_width > text_box_width:
+
+                                            # Quando não couber mais na altura começa a diminuir a fonte 
+                                            # e ajustar até que todo o texto caiba tanto na altura quanto na largura da caixa de texto
+                                            while (text_height > text_box_height) or (text_width > text_box_width) or (teste_linhas >= 2 and len(teste[teste_linhas-1]) <= 6):
                                                 font_size -= 1
                                                 font = ImageFont.truetype(font_path, font_size)
                                                 teste = textwrap.wrap(text, width=max_text_len)
@@ -134,20 +140,21 @@ with open(dir_origem+'/modulos.csv', 'r') as csv_file:
                                                     left, top, right, bottom = font.getbbox(linha)
                                                     if text_width < right - left:
                                                         text_width = right - left
-                                                    # pega a soma das alturas
+                                                    # pega a soma das alturas das linhas
                                                     text_height += bottom
                                                 # faz o ajuste fino, compensando os novos ajustes 
-                                                if text_width < text_box_width:
-                                                    max_text_len += 1
-                                                elif text_width > text_box_width:
-                                                    max_text_len -= 1
+                                                if text_width < text_box_width:     # --- caso tenha diminuido a fonte a ponto de o texto ser menor que o box
+                                                    max_text_len += 1               # --- aumenta o numero de caracteres na linha para compensar
+                                                elif text_width > text_box_width:   # --- só para garantir 
+                                                    max_text_len -= 1               # --- aumenta o numero de caracteres na linha para compensar
                                                 teste_linhas = len(teste)
                                                 # print(f'Reduz fonte.... max: {max_text_len} - linhas: {teste_linhas} - width: {text_width} - font_size: {font_size} --- {teste} ')
                                                 # input()
-
+                                            
                                             line_thikness = config['formatos'][formato]['line_thikness']
                                             line_space = config['formatos'][formato]['line_space']
-
+                                            
+                                            # 
                                             if teste:
                                                 for linha in teste:
                                                     draw.text((left_pos,top_pos), linha, fill=color, font=font) # anchor='lb', stroke_width=2, stroke_fill='black'
@@ -158,13 +165,25 @@ with open(dir_origem+'/modulos.csv', 'r') as csv_file:
                                                 line_height = top_pos + bottom + line_space #(image_height*5/100)
                                             
                                             # DESENHA A LINHA
-                                            if(line_thikness):
+                                            if line_thikness:
                                                 line_width = text_width + left_pos + (image_width*3/100)
                                                 draw.line((0, line_height, line_width, line_height), fill=color, width=line_thikness)
+                                            
+                                            # IMPRIME O LOGO 
+                                            if config['formatos'][formato]['logo_pos']:
+                                                logo_pos = ast.literal_eval(config['formatos'][formato]['logo_pos'])    #ast.litera_eval é usado (neste caso) para transformar uma string em formato tupla (99,99) em tupla
+                                                logo_pos_px = (int(logo_pos[0]*image_width/100), int(logo_pos[1]*image_height/100))
+                                                # logo_size = ast.literal_eval(config['formatos'][formato]['logo_size']) 
+                                                logo_width = config['formatos'][formato]['logo_size']
+                                                # logo.thumbnail((logo_size))
+                                                logo = logo.resize((logo_width, int(logo_width*logo_ratio)))
+                                                # logo_box = (logo_pos_px[0], logo_pos_px[1], logo_pos_px[0] + logo_size[0], logo_pos_px[1]+logo_size[1])
+                                                # print(f'\t|\t|\t|\t|\t|\t ** logo_size: {logo_size} - logo_ratio: {logo_ratio} - logo_width: {logo_width} - logo(resized): - {logo.size}')
+                                                img.paste(logo, logo_pos_px, logo)
 
                                             # SALVA A IMAGEM
-                                            if not os.path.exists(dir_destino+'/'+dir+'/'+modulo_atual_nome):   # Verifique se o pastaetório já existe
-                                                os.makedirs (dir_destino+'/'+dir+'/'+modulo_atual_nome)
-                                            img.save(dir_destino+'/'+dir+'/'+modulo_atual_nome+'/'+aula_atual_nome+' ['+formato+']'+'.png')
+                                            if not os.path.exists(dir_destino+'/'+dir+'/'+str(modulo_atual_num)+'-'+modulo_atual_nome):   # Verifique se o pastaetório já existe
+                                                os.makedirs (dir_destino+'/'+dir+'/'+str(modulo_atual_num)+'-'+modulo_atual_nome)
+                                            img.save(dir_destino+'/'+dir+'/'+str(modulo_atual_num)+'-'+modulo_atual_nome+'/'+str(aula_atual_num)+'-'+aula_atual_nome+'['+formato+']'+'.png')
 
                                         
