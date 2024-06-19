@@ -154,14 +154,32 @@ with open(dir_origem+'/modulos.csv', 'r') as csv_file:
                                             line_thikness = config['formatos'][formato]['line_thikness']
                                             line_space = config['formatos'][formato]['line_space']
                                             
-                                            # 
+                                            
                                             if teste:
                                                 for linha in teste:
-                                                    draw.text((left_pos,top_pos), linha, fill=color, font=font) # anchor='lb', stroke_width=2, stroke_fill='black'
+                                                    match config['formatos'][formato]['align']:
+                                                        case 'right':
+                                                            left, top, right, bottom = font.getbbox(linha)
+                                                            left_pos_2 = right_pos - right
+                                                        case 'center':
+                                                            left, top, right, bottom = font.getbbox(linha)
+                                                            left_pos_2 = left_pos + (right_pos - left_pos - right)/2
+                                                        case 'left' | _:
+                                                            left_pos_2 = left_pos
+                                                    draw.text((left_pos_2,top_pos), linha, fill=color, font=font) # anchor='lb', stroke_width=2, stroke_fill='black'
                                                     top_pos = top_pos + bottom + 5
                                                 line_height = top_pos + line_space #(image_height*5/100)
                                             else:
-                                                draw.text((left_pos,top_pos), text, fill=color, font=font) # anchor='lb', stroke_width=2, stroke_fill='black'
+                                                match config['formatos'][formato]['align']:
+                                                    case 'right':
+                                                        left, top, right, bottom = font.getbbox(text)
+                                                        left_pos_2 = right_pos - right
+                                                    case 'center':
+                                                        left, top, right, bottom = font.getbbox(text)
+                                                        left_pos_2 = left_pos + (right_pos - left_pos - right)/2
+                                                    case 'left' | _:
+                                                        left_pos_2 = left_pos
+                                                draw.text((left_pos_2,top_pos), text, fill=color, font=font) # anchor='lb', stroke_width=2, stroke_fill='black'
                                                 line_height = top_pos + bottom + line_space #(image_height*5/100)
                                             
                                             # DESENHA A LINHA

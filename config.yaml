@@ -7,6 +7,7 @@ formatos:
     bottom_pos: 15  #%
     left_pos: 15    #%
     right_pos: 15   #%
+    align: center  #left/center/right
     font_size: 68     #px
     line_thikness: 5  #px
     line_space: 35    #px
@@ -17,6 +18,7 @@ formatos:
     bottom_pos: 15
     left_pos: 15 
     right_pos: 15
+    align: right
     font_size: 26
     line_thikness: 3
     line_space: 15
@@ -27,6 +29,7 @@ formatos:
     bottom_pos: 15
     left_pos: 15 
     right_pos: 10
+    align: left
     font_size: 30
     line_thikness: 2
     line_space: 12
@@ -37,6 +40,7 @@ formatos:
     bottom_pos: 20
     left_pos: 18  
     right_pos: 18 
+    align: center
     font_size: 30
     line_thikness: 0
     line_space: 30
