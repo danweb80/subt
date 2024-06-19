@@ -44,5 +44,5 @@ formatos:
     font_size: 30
     line_thikness: 0
     line_space: 30
-    logo_pos: (50, 10)
+    logo_pos: 
     logo_size: 30
